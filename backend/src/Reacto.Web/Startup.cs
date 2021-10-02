@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Reacto.Web.Hubs;
+using Serilog;
 
 namespace Reacto.Web
 {
@@ -28,6 +29,8 @@ namespace Reacto.Web
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSerilogRequestLogging();
 
             app.UseCors(builder => builder.WithOrigins("http://localhost:8080")
                 .WithMethods("GET", "POST")
