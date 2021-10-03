@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Orleans;
+using Orleans.Hosting;
+using Reacto.Grains;
+using Serilog;
 
 namespace Reacto.Web
 {
@@ -18,9 +16,18 @@ namespace Reacto.Web
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+                .UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration))
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
+                .UseOrleans((context, builder) =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    if (context.HostingEnvironment.IsDevelopment())
+                    {
+                        builder.UseLocalhostClustering();
+                        builder.AddMemoryGrainStorageAsDefault();
+                    }
+
+                    builder.ConfigureApplicationParts(parts =>
+                        parts.AddApplicationPart(typeof(Stage).Assembly).WithReferences());
                 });
     }
 }
