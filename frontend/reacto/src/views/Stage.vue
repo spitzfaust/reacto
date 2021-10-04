@@ -50,9 +50,12 @@ export default defineComponent({
 
     const reactions: Ref<Reaction[]> = ref([]);
 
-    connection.on("ReceiveReaction", (reaction: Reaction) => {
-      console.log(reaction);
-      reactions.value.push(reaction);
+    connection.on("ReceiveReaction", (r: Reaction) => {
+      reactions.value.push(r);
+    });
+
+    connection.on("ReceiveAllReactions", (r: Reaction[]) => {
+      reactions.value = r;
     });
 
     const addSpectator = async () => {

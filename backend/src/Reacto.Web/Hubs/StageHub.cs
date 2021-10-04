@@ -36,6 +36,7 @@ namespace Reacto.Web.Hubs
 
             var stage = clusterClient.GetGrain<IStage>(stageName);
             await stage.JoinStage(new Spectator(spectatorName), Context.ConnectionId);
+            await Clients.Caller.ReceiveAllReactions(await stage.GetReactions());
             await Groups.AddToGroupAsync(Context.ConnectionId, stageName);
         }
 

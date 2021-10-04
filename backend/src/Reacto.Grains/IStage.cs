@@ -18,7 +18,7 @@ namespace Reacto.Grains
         
         public Task<Reaction?> PostReaction(string connectionId, ReactionType reactionType);
 
-        public Task<IEnumerable<Reaction>> GetReactions(Spectator spectator);
+        public Task<IEnumerable<Reaction>> GetReactions();
 
         public Task<IEnumerable<Spectator>> GetActiveSpectators();
     }

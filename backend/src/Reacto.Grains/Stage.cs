@@ -30,26 +30,6 @@ namespace Reacto.Grains
             return stageState.WriteStateAsync();
         }
 
-        public async Task<Reaction> PostReaction(Spectator spectator, ReactionType reactionType)
-        {
-            if (!Enum.IsDefined(typeof(ReactionType), reactionType))
-            {
-                throw new InvalidEnumArgumentException(nameof(reactionType), (int)reactionType, typeof(ReactionType));
-            }
-
-            if (!stageState.State.ActiveSpectators.Contains(spectator))
-            {
-                throw new InvalidOperationException($"Spectator {spectator} is not active");
-            }
-
-            var reaction = new Reaction(Guid.NewGuid(), spectator, reactionType, DateTimeOffset.Now);
-
-            stageState.State.Reactions.Add(reaction);
-            await stageState.WriteStateAsync();
-
-            return reaction;
-        }
-
         public async Task JoinStage(Spectator spectator, string connectionId)
         {
             if (string.IsNullOrWhiteSpace(connectionId))
@@ -97,17 +77,16 @@ namespace Reacto.Grains
                 return null;
             }
 
-            var reaction = new Reaction(Guid.NewGuid(), spectator, reactionType, DateTimeOffset.Now);
-
+            var reaction = new Reaction(Guid.NewGuid(), spectator, reactionType, stageState.State.Reactions.Count, DateTimeOffset.Now);
             stageState.State.Reactions.Add(reaction);
             await stageState.WriteStateAsync();
 
             return reaction;
         }
 
-        public Task<IEnumerable<Reaction>> GetReactions(Spectator spectator)
+        public Task<IEnumerable<Reaction>> GetReactions()
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IEnumerable<Reaction>>(stageState.State.Reactions);
         }
 
         public Task<IEnumerable<Spectator>> GetActiveSpectators()

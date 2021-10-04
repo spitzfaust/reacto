@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Reacto.Grains
 {
-    public record Reaction(Guid Id, Spectator Spectator, ReactionType ReactionType, DateTimeOffset CreatedAt);
+    public record Reaction(Guid Id, Spectator Spectator, ReactionType ReactionType, int SortOrder, DateTimeOffset CreatedAt);
 
     public record Spectator
     {
