@@ -6,4 +6,5 @@ export interface Reaction {
   spectator: Spectator;
   reactionType: ReactionType;
   createdAt: Date;
+  sortOrder: number;
 }
