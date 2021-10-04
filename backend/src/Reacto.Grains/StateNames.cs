@@ -1,7 +1,8 @@
 namespace Reacto.Grains
 {
-    public static class StateNames
+    internal static class StateNames
     {
-        public const string Stage = "stage";
+        internal const string Stage = "stage";
+        internal const string Connection = "connection";
     }
 }

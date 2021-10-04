@@ -16,7 +16,7 @@ namespace Reacto.Grains
 
         public Task LeaveStage(Spectator spectator);
         
-        public Task<Reaction> PostReaction(Spectator spectator, ReactionType reactionType);
+        public Task<Reaction?> PostReaction(string connectionId, ReactionType reactionType);
 
         public Task<IEnumerable<Reaction>> GetReactions(Spectator spectator);
 

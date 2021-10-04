@@ -34,7 +34,6 @@ export default defineComponent({
         this.$router.push({
           name: "stage",
           params: { name: this.stageName },
-
         });
       }
     },
