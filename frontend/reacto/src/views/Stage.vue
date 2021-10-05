@@ -1,25 +1,68 @@
 <template>
-  <div>
-    <h1>Reacto</h1>
-    <h2>Stage: {{ name }}</h2>
-    <div v-if="showLogin">
-      <label for="spectatorName">Please enter your name:</label>
-      <input id="spectatorName" type="text" v-model.trim="spectatorInput" />
-      <button @click="addSpectator" :disabled="!isSpectatorValid">Join</button>
+  <div class="row">
+    <div class="col">
+      <h2>Stage: {{ name }}</h2>
     </div>
-    <div v-else-if="showLoading">Joining stage, please hold on...</div>
-    <div v-else>
-      <p
-        v-if="
-          sharedState.stageSpectators[name] != null &&
-          sharedState.stageSpectators[name] != ''
-        "
-      >
-        logged in as {{ sharedState.stageSpectators[name] }}
+  </div>
+  <div v-if="showLogin" class="row">
+    <div class="col-12 col-md-6">
+      <p>
+        After you enter your name you will join the stage and be able to post
+        your reactions.
       </p>
+      <div class="input-group input-group-lg mb-3">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Enter your name"
+          v-model.trim="spectatorInput"
+          aria-label="Enter your name"
+          @keypress.enter.exact="addSpectator"
+        />
+        <button
+          @click="addSpectator"
+          :disabled="!isSpectatorValid"
+          class="btn btn-primary"
+        >
+          Join Stage
+        </button>
+      </div>
+    </div>
+  </div>
+  <div v-else-if="showLoading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden"> Joining stage, please hold on...</span>
+    </div>
+  </div>
+  <div v-else class="row">
+    <div class="col">
+      <div class="row">
+        <div class="col">
+          <p
+            v-if="
+              sharedState.stageSpectators[name] != null &&
+              sharedState.stageSpectators[name] != ''
+            "
+          >
+            logged in as
+            <strong>{{ sharedState.stageSpectators[name] }}</strong>
+          </p>
+        </div>
+      </div>
       <ReactionInput @click="react" />
-      <div v-for="r in reactions" :key="r.id">
-        {{ mapping.get(r.reactionType) }} - {{ r.spectator.name }}
+      <div class="row mt-2 mb-4 flex-grow-1">
+        <div class="col">
+          <div v-if="reactions.length == 0" class="alert alert-info">
+            Reactions will be shown here as soon as they happen.
+          </div>
+          <ol v-else class="list-group">
+            <ReactionListItem
+              v-for="r in orderedReactions"
+              :key="r.id"
+              :reaction="r"
+            />
+          </ol>
+        </div>
       </div>
     </div>
   </div>
@@ -30,10 +73,11 @@ import { computed, defineComponent, onMounted, Ref, ref } from "vue";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { LoadingState } from "@/entities/LoadingState";
 import ReactionInput from "@/components/ReactionInput.vue";
+import ReactionListItem from "@/components/ReactionListItem.vue";
 import store from "@/store";
 import { ReactionType } from "@/entities/ReactionType";
-import { Reaction } from "@/entities/Reaction";
 import mapping from "@/entities/ReactionEmojiMapping";
+import { Reaction } from "@/entities/Reaction";
 
 export default defineComponent({
   name: "Stage",
@@ -57,6 +101,10 @@ export default defineComponent({
     connection.on("ReceiveAllReactions", (r: Reaction[]) => {
       reactions.value = r;
     });
+
+    const orderedReactions = computed(() =>
+      reactions.value.slice().sort((a, b) => b.sortOrder - a.sortOrder)
+    );
 
     const addSpectator = async () => {
       joinStageState.value = LoadingState.Loading;
@@ -107,12 +155,13 @@ export default defineComponent({
       showLoading,
       react,
       reactions,
+      orderedReactions,
       mapping,
     };
   },
   props: {
     name: { type: String, required: true },
   },
-  components: { ReactionInput },
+  components: { ReactionInput, ReactionListItem },
 });
 </script>
