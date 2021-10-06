@@ -138,7 +138,6 @@ export default defineComponent({
     );
 
     const react = async (reactionType: ReactionType) => {
-      console.log(reactionType);
       await connection.send("postReaction", {
         reactionType: reactionType,
       });

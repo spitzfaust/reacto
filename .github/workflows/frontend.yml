@@ -15,7 +15,7 @@ jobs:
           submodules: true
       - run: |
           touch frontend/reacto/.env
-          echo "REACTO_BACKEND=${{ secrets.REACTO_BACKEND }}"
+          echo "VUE_APP_REACTO_BACKEND=${{ secrets.REACTO_BACKEND }}"
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
