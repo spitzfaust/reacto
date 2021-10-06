@@ -36,7 +36,7 @@ namespace Reacto.Web
                     }
                     else
                     {
-                        builder.ConfigureEndpoints(1111, 30000);
+                        builder.UseKubernetesHosting();
                         builder.UseAzureStorageClustering(options =>
                         {
                             options.ConnectionString = context.Configuration.GetConnectionString("AzureStorage");
