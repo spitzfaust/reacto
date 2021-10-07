@@ -89,7 +89,7 @@ export default defineComponent({
     const joinStageState = ref(LoadingState.None);
 
     let connection = new HubConnectionBuilder()
-      .withUrl(`${process.env.VUE_APP_REACTO_BACKEND as string}/stages`)
+      .withUrl(`${process.env.VUE_APP_REACTO_BACKEND as string}/stage`)
       .build();
 
     const reactions: Ref<Reaction[]> = ref([]);
