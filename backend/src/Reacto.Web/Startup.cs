@@ -63,7 +63,11 @@ namespace Reacto.Web
 
             app.UseCors();
 
-            app.UseEndpoints(endpoints => { endpoints.MapHub<StageHub>("/stage"); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGet("/", context => context.Response.WriteAsync("reacto - ok"));
+                endpoints.MapHub<StageHub>("/stage");
+            });
         }
     }
 }
