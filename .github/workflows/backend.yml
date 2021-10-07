@@ -28,6 +28,7 @@ jobs:
           docker build . -t ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/reacto/backend:${{ github.sha }}
           docker push ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/reacto/backend:${{ github.sha }}
   deploy:
+    needs: build_and_push
     runs-on: ubuntu-latest
     steps:
       - name: 'Set AKS context'
