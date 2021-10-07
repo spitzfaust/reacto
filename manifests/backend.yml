@@ -12,6 +12,7 @@ spec:
   template:
     metadata:
       labels:
+        app: reacto-backend
         # This label is used to identify the service to Orleans
         orleans/serviceId: reacto-backend
 
