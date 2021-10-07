@@ -1,0 +1,65 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy backend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v2
+      - name: Azure Container Registry Login
+        uses: Azure/docker-login@v1
+        with:
+          username: ${{ secrets.AZURE_CONTAINER_REGISTRY_USER }}
+          password: ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }}
+          # Container registry server url
+          login-server: ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}
+      - run: |
+          docker build . -t ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/reacto/backend:${{ github.sha }}
+          docker push ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/reacto/backend:${{ github.sha }}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Set AKS context'
+        uses: azure/aks-set-context@v1
+        with:
+            creds: '${{ secrets.AZURE_CREDENTIALS }}'
+            resource-group: 'reacto'
+            cluster-name: 'reacto'
+      - name: 'Create image-pull-secret'
+        uses: Azure/k8s-create-secret@v1.1
+        with:
+          namespace: 'default'
+          secret-type: 'docker-registry'
+          # Container registry url
+          container-registry-url: ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}
+          # Container registry username
+          container-registry-username: ${{ secrets.AZURE_CONTAINER_REGISTRY_USER }}
+          # Container registry password
+          container-registry-password: ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }}
+          # Name of the secret. You can use this secret name in the Kubernetes YAML configuration file.
+          secret-name: 'image-pull-secret'
+      - name: 'Create reacto-backend-secret'
+        uses: Azure/k8s-create-secret@v1.1
+        with:
+          namespace: 'default'
+          secret-type: 'generic'
+          arguments: '--from-literal=az-signalr=${{ secrets.AZURE_SIGNALR }} --from-literal=az-storage=${{ secrets.AZURE_STORAGE }} --from-literal=allowedorigin=${{ secrets.ALLOWEDORIGIN }}'
+          secret-name: 'reacto-backend-secret'
+      - name: 'Deploy manifest'
+        uses: Azure/k8s-deploy@v1.4
+        with:
+          manifests: 'manifests/backend.yml'
+          images: '${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/reacto/backend:${{ github.sha }}'
+          imagepullsecrets: 'image-pull-secret'
+          kubectl-version: 'latest'

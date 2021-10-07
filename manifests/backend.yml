@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: reacto-backend
+  labels:
+    orleans/serviceId: reacto-backend
+spec:
+  selector:
+    matchLabels:
+      orleans/serviceId: reacto-backend
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        # This label is used to identify the service to Orleans
+        orleans/serviceId: reacto-backend
+
+        # This label is used to identify an instance of a cluster to Orleans.
+        # Typically, this will be the same value as the previous label, or any
+        # fixed value.
+        # In cases where you are not using rolling deployments (for example,
+        # blue/green deployments),
+        # this value can allow for distinct clusters which do not communicate
+        # directly with each others,
+        # but which still share the same storage and other resources.
+        orleans/clusterId: reacto-backend
+    spec:
+      containers:
+        - name: main
+          image: reacto.azurecr.io/reacto/backend
+          imagePullPolicy: Always
+          ports:
+          # Define the ports which Orleans uses
+          - containerPort: 80
+          - containerPort: 11111
+          - containerPort: 30000
+          env:
+          - name: AZURE__SIGNALR__CONNECTIONSTRING
+            valueFrom:
+              secretKeyRef:
+                name: reacto-backend-secret
+                key: az-signalr
+          - name: CONNECTIONSTRINGS__AZURESTORAGE
+            valueFrom:
+              secretKeyRef:
+                name: reacto-backend-secret
+                key: az-storage
+          - name: ALLOWEDORIGIN
+            valueFrom:
+              secretKeyRef:
+                name: reacto-backend-secret
+                key: allowedorigin
+          # Configure settings to let Orleans know which cluster it belongs to
+          # and which pod it is running in
+          - name: ORLEANS_SERVICE_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['orleans/serviceId']
+          - name: ORLEANS_CLUSTER_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['orleans/clusterId']
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
+            value: "120"
+          request:
+            # Set resource requests
+      terminationGracePeriodSeconds: 180
+      imagePullSecrets:
+        - name: image-pull-secret
+  minReadySeconds: 60
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reacto-backend
+spec:
+  selector:
+    app: reacto-backend
+  ports:
+  - port: 80
+    targetPort: 80
